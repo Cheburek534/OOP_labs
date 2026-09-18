@@ -1,0 +1,3 @@
+#pragma once
+#define IDD_DIALOG2     1401
+#define IDC_EDIT1       1402

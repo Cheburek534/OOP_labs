@@ -1,0 +1,4 @@
+#pragma once
+#define IDD_DIALOG1     1301
+#define IDC_SCROLLBAR1  1302
+#define IDC_STATIC_VAL  1303
