@@ -1,4 +1,4 @@
-﻿#include "framework.h"
+#include "framework.h"
 #include "Lab2.h"
 #include "shape.h" 
 
@@ -98,6 +98,8 @@ void UpdateWindowTitle(HWND hWnd) {
     SetWindowTextW(hWnd, newTitle);
 }
 
+HPEN hRubberPen = nullptr;
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_COMMAND: {
@@ -127,6 +129,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             startX = endX = LOWORD(lParam);
             startY = endY = HIWORD(lParam);
             tempShape = CreateShape(currentTool); 
+
+            hRubberPen = CreatePen(PS_DASH, 1, RGB(0, 0, 0));
         }
         break;
 
@@ -135,11 +139,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             HDC hdc = GetDC(hWnd);
 
             SetROP2(hdc, R2_NOTXORPEN);
+            SetBkMode(hdc, TRANSPARENT);
 
-            // Варіант Ж=3: пунктирна лінія чорного кольору
-            SetBkMode(hdc, TRANSPARENT); 
-            HPEN dashedBlackPen = CreatePen(PS_DASH, 1, RGB(0, 0, 0));
-            HPEN oldPen = (HPEN)SelectObject(hdc, dashedBlackPen);
+            HPEN oldPen = (HPEN)SelectObject(hdc, hRubberPen);
 
             tempShape->Set(startX, startY, endX, endY);
             tempShape->Show(hdc);
@@ -150,8 +152,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             tempShape->Set(startX, startY, endX, endY);
             tempShape->Show(hdc);
 
-            SelectObject(hdc, oldPen);
-            DeleteObject(dashedBlackPen);
+            SelectObject(hdc, oldPen); 
+
+
             ReleaseDC(hWnd, hdc);
         }
         break;
@@ -166,6 +169,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
             delete tempShape; 
             tempShape = nullptr;
+
+            if (hRubberPen != nullptr) {
+                DeleteObject(hRubberPen);
+                hRubberPen = nullptr; 
+            }
 
             InvalidateRect(hWnd, NULL, TRUE); 
         }
