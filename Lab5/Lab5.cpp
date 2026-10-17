@@ -1,7 +1,7 @@
-﻿#include "framework.h"
+#include "framework.h"
 #include "Resource.h"
 #include "editor.h"
-#include "my_table.h" 
+#include "my_table.h"
 #include <commdlg.h>  
 
 #pragma comment(lib, "comctl32.lib")
@@ -16,6 +16,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+
 void UpdateTableDisplay() {
     std::vector<TableRowData> data;
     MyEditor& editor = MyEditor::getInstance();
@@ -26,7 +27,7 @@ void UpdateTableDisplay() {
             data.push_back({ s->GetName(), s->GetX1(), s->GetY1(), s->GetX2(), s->GetY2() });
         }
     }
-    myTable.UpdateData(data);
+    myTable.UpdateData(data); 
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
@@ -42,7 +43,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     while (GetMessage(&msg, nullptr, 0, 0))
     {
         HWND hDlg = myTable.GetDialogHandle();
-
         if (hDlg == NULL || !IsDialogMessage(hDlg, &msg)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -109,8 +109,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         break;
 
     case WM_USER_DELETE_SHAPE:
-        editor.DeleteShape((int)wParam); 
-        UpdateTableDisplay();            
+        editor.DeleteShape((int)wParam);
+        UpdateTableDisplay();
         break;
 
     case WM_COMMAND: {
@@ -123,12 +123,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         case ID_VIEW_TABLE:
             myTable.Show(hInst, hWnd);
-            UpdateTableDisplay(); 
+            UpdateTableDisplay();
             break;
 
         case ID_FILE_SAVE_CSV: {
-            OPENFILENAMEW ofn;       
-            WCHAR szFile[260] = { 0 }; 
+            OPENFILENAMEW ofn;
+            WCHAR szFile[260] = { 0 };
 
             ZeroMemory(&ofn, sizeof(ofn));
             ofn.lStructSize = sizeof(ofn);
@@ -146,6 +146,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 }
                 else {
                     MessageBoxW(hWnd, L"Помилка запису у файл.", L"Помилка", MB_OK | MB_ICONERROR);
+                }
+            }
+            break;
+        }
+
+                             
+        case ID_FILE_OPEN_CSV: {
+            OPENFILENAMEW ofn;
+            WCHAR szFile[260] = { 0 }; 
+
+            ZeroMemory(&ofn, sizeof(ofn));
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = hWnd;       
+            ofn.lpstrFile = szFile;     
+            ofn.nMaxFile = sizeof(szFile) / sizeof(WCHAR);
+            ofn.lpstrFilter = L"CSV Файли (*.csv)\0*.csv\0Всі файли (*.*)\0*.*\0";
+            ofn.nFilterIndex = 1;
+            ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+            if (GetOpenFileNameW(&ofn) == TRUE) {
+                if (editor.LoadFromFile(ofn.lpstrFile)) {
+                    UpdateTableDisplay();
+
+                    MessageBoxW(hWnd, L"Дані успішно завантажено!", L"Успіх", MB_OK | MB_ICONINFORMATION);
+                }
+                else {
+                    MessageBoxW(hWnd, L"Помилка читання або некоректний формат файлу.", L"Помилка", MB_OK | MB_ICONERROR);
                 }
             }
             break;
